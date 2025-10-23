@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Happy Birthday Rishu</title>
+
+<!-- Dancing Script font (dreamy) -->
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{--bg1:#1a1f4b;--bg2:#ff9966;}
+  html,body{height:100%;margin:0;font-family:'Times New Roman',serif;overflow:hidden;background:linear-gradient(to top,var(--bg1),var(--bg2));}
+  
+  /* Title with emojis */
+  h1{
+    font-family:'Dancing Script', cursive;
+    font-size:3.2em;
+    text-shadow:2px 2px 12px rgba(0,0,0,0.7);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    z-index:5;
+    position:absolute;
+    top:20px;
+    width:100%;
+    text-align:center;
+  }
+
+  /* Site wrapper (hidden until unlock) */
+  #siteContent { position:relative; width:100%; height:100%; visibility:hidden; opacity:0; transition:opacity .6s ease, visibility .01s linear .6s; }
+
+  /* Star canvas (will start after unlock) */
+  #starsCanvas { position: fixed; inset:0; z-index:0; pointer-events:none; display:block; }
+
+  /* Rooftop and candle */
+  #rooftop-scene{position:fixed; inset:0; background:url('rooftop-4k.jpg') center/cover no-repeat; display:flex; justify-content:center; align-items:flex-end; z-index:1; }
+  .candle-wrap{position:absolute; bottom:120px; display:flex; flex-direction:column; align-items:center; z-index:2;}
+  .candle{width:40px;height:110px;background:linear-gradient(#fff,#ffd9b3);border-radius:8px;position:relative;display:flex;align-items:flex-start;justify-content:center;cursor:pointer;}
+  .wick{width:4px;height:18px;background:#333;margin-top:8px;border-radius:6px;}
+  .flame{position:absolute;top:-14px;width:18px;height:28px;border-radius:50%;filter:drop-shadow(0 8px 12px rgba(255,140,0,0.45));transition:all .35s ease;}
+  .flame::before{content:'';position:absolute;left:4px;top:4px;width:10px;height:16px;border-radius:50%;background:orange;}
+  .flame::after{content:'';position:absolute;left:6px;top:8px;width:6px;height:10px;border-radius:50%;background:yellow;}
+  .extinguished .flame{opacity:0;transform:translateY(-6px) scale(0.2);}
+
+  /* Floating dreamy text under candle */
+  .floatText {
+    margin-top:14px;
+    font-family:'Dancing Script', cursive;
+    font-size:30px;
+    color:#ffffff;
+    text-shadow:0 6px 18px rgba(255,255,255,0.06), 0 2px 6px rgba(0,0,0,0.6);
+    z-index:4;
+    pointer-events:none;
+    transform-origin:center;
+    will-change:transform;
+    animation:float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  /* Letter modal */
+  #letterModal{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:1001;}
+  .letter-content {
+    width:842px; max-width:95%; max-height:90%; aspect-ratio:1/1.414; padding:0; border-radius:6px;
+    display:flex; justify-content:center; align-items:center; overflow:hidden; position:relative; z-index:1002; background:white;
+  }
+  .letter-content > .scrollWrap { width:100%; height:100%; overflow-y:auto; padding:12px; box-sizing:border-box; }
+  .close-btn{position:absolute; top:10px; right:10px; background:transparent; border:none; font-size:26px; cursor:pointer; color:black; z-index:1010;}
+
+  /* Night scene (after modal close) */
+  #nightScene{position:fixed; inset:0; display:none; background:url('night-rooftop-4k.jpg') center/cover no-repeat; z-index:1;}
+  #nightStarsCanvas{position:absolute; inset:0; pointer-events:none; }
+
+  /* Video */
+  #bgMusic{position:fixed; bottom:10px; right:10px; width:120px; height:auto; z-index:3; display:block;}
+
+  /* --- LOCK OVERLAY (SCARY) --- */
+  #lockOverlay {
+    position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,1), rgba(10,0,0,0.95));
+    color:#fff; flex-direction:column; padding:20px; box-sizing:border-box;
+  }
+
+  /* Warning box */
+  .warningBox {
+    background:linear-gradient(180deg, rgba(50,0,0,0.92), rgba(0,0,0,0.9));
+    border: 2px solid rgba(200,0,0,0.95);
+    padding:30px;
+    width:440px;
+    max-width:92%;
+    text-align:center;
+    box-shadow:0 12px 50px rgba(0,0,0,0.85);
+    transform:translateY(-10px);
+  }
+  .warningBox h2 { margin:0 0 10px 0; font-size:24px; letter-spacing:1px; color:#ffdddd; text-shadow:0 2px 12px rgba(255,0,0,0.25); }
+  .warningBox p { margin:0 0 18px 0; color:#ffb3b3; opacity:0.95; font-size:15px; }
+
+  /* Password area */
+  .pwArea { margin-top:12px; display:flex; gap:8px; justify-content:center; align-items:center; }
+  .pwArea input[type="password"]{
+    padding:10px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.45);
+    color:#fff; outline:none; min-width:170px; font-size:16px;
+  }
+  .pwArea button { padding:10px 14px; border-radius:6px; border:none; background:#c62828; color:white; cursor:pointer; font-weight:600; }
+
+  /* Scary small text and shake */
+  .scaryFooter { margin-top:18px; color:#ff6666; font-family:monospace; opacity:0.9; font-size:13px; }
+  @keyframes shake { 10%,90%{transform:translateX(-1px)} 20%,80%{transform:translateX(2px)} 30%,50%,70%{transform:translateX(-4px)} 40%,60%{transform:translateX(4px)} }
+  .shake { animation:shake .6s linear; }
+
+  /* small "blank" scary background visible behind overlay */
+  body.locked::before{
+    content:"";
+    position:fixed; inset:0; z-index:9998;
+    background:black;
+    opacity:1;
+  }
+
+  /* Responsive small tweaks */
+  @media (max-width:480px){
+    .floatText{font-size:22px;}
+    .warningBox{padding:20px;width:92%;}
+    .pwArea input[type="password"]{min-width:120px;}
+  }
+</style>
+</head>
+<body class="locked">
+
+<!-- LOCK OVERLAY (shows until correct password 'catty') -->
+<div id="lockOverlay" aria-hidden="false">
+  <div class="warningBox" id="warningBox">
+    <h2>WARNING</h2>
+    <p>ENTER AT YOUR OWN RISK</p>
+
+    <div class="pwArea">
+      <input id="pwInput" type="password" placeholder="Enter password" aria-label="Password" />
+      <button id="unlockBtn">Unlock</button>
+    </div>
+
+    <div class="scaryFooter">Unauthorized access may result in spooky surprises 👻</div>
+  </div>
+</div>
+
+<!-- SITE CONTENT (hidden until unlocked) -->
+<div id="siteContent">
+
+  <!-- Title with emojis instead of image -->
+  <h1>
+    🌸 Happy Birthday Rishu 🌸
+  </h1>
+
+  <!-- Star canvas -->
+  <canvas id="starsCanvas"></canvas>
+
+  <!-- Rooftop and candle -->
+  <div id="rooftop-scene">
+    <div class="candle-wrap">
+      <div class="candle" id="candle">
+        <div class="wick"></div>
+        <div class="flame" id="flame"></div>
+      </div>
+
+      <!-- DREAMY FLOATING TEXT (exact text requested) -->
+      <div class="floatText">Blow the candle rishu</div>
+    </div>
+  </div>
+
+  <!-- Letter popup -->
+  <div id="letterModal">
+    <div class="letter-content">
+      <button class="close-btn" id="closeLetter" aria-label="Close letter">✕</button>
+      <div class="scrollWrap">
+        <img src="pic1.jpg" alt="Letter" style="width:100%; object-fit:contain; display:block;" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Night rooftop -->
+  <div id="nightScene">
+    <canvas id="nightStarsCanvas"></canvas>
+  </div>
+
+  <!-- Video as background music -->
+  <video id="bgMusic" src="vid1.mp4" poster=" " loop controls></video>
+</div>
+
+<script>
+/* --- CONFIG --- */
+const UNLOCK_PASSWORD = 'catty'; // password set to 'catty'
+
+/* --- ELEMENTS --- */
+const lockOverlay = document.getElementById('lockOverlay');
+const pwInput = document.getElementById('pwInput');
+const unlockBtn = document.getElementById('unlockBtn');
+const siteContent = document.getElementById('siteContent');
+const body = document.body;
+
+/* Unlock function */
+function unlockSite(){
+  const attempt = (pwInput.value || '').trim();
+  if(attempt === UNLOCK_PASSWORD){
+    lockOverlay.style.transition = 'opacity .6s ease';
+    lockOverlay.style.opacity = '0';
+    setTimeout(()=>{ lockOverlay.style.display='none'; }, 700);
+    siteContent.style.visibility = 'visible';
+    siteContent.style.opacity = '1';
+    body.classList.remove('locked');
+    setTimeout(()=> startStarAnimation(), 120);
+    pwInput.value = '';
+  } else {
+    const wb = document.getElementById('warningBox');
+    wb.classList.remove('shake');
+    void wb.offsetWidth;
+    wb.classList.add('shake');
+    pwInput.value = '';
+    pwInput.focus();
+  }
+}
+
+unlockBtn.addEventListener('click', unlockSite);
+pwInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') unlockSite(); });
+
+/* --- Rest of site code (stars, candle, letter, audio) --- */
+const candle = document.getElementById('candle');
+const flame = document.getElementById('flame');
+const letterModal = document.getElementById('letterModal');
+const closeLetter = document.getElementById('closeLetter');
+const nightScene = document.getElementById('nightScene');
+const audio = document.getElementById('bgMusic');
+
+let clickCount = 0;
+let listening = false;
+let audioContext, analyser, source;
+let blowCooldown = false;
+
+async function startListening(){
+  if(listening) return;
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    audioContext = new (window.AudioContext||window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+    analyser.fftSize = 128;
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    listening = true;
+
+    const check = () => {
+      analyser.getByteTimeDomainData(data);
+      let sum=0;
+      for(let i=0;i<data.length;i++){
+        const v=(data[i]-128)/128;
+        sum+=v*v;
+      }
+      const rms=Math.sqrt(sum/data.length);
+      if(rms>0.08 && !blowCooldown && !candle.classList.contains('extinguished')){
+        extinguishCandle();
+        blowCooldown=true;
+        setTimeout(()=>blowCooldown=false,1500);
+      }
+      if(listening) requestAnimationFrame(check);
+    };
+    check();
+  }catch(e){ console.warn('Microphone access denied or unavailable.', e); }
+}
+
+function extinguishCandle(){
+  candle.classList.add('extinguished');
+  letterModal.style.display='flex';
+  audio.play().catch(()=>{});
+}
+
+candle.addEventListener('click', ()=>{
+  clickCount++;
+  if(clickCount>=2 && !candle.classList.contains('extinguished')){
+    extinguishCandle();
+    clickCount=0;
+  } else {
+    startListening();
+  }
+});
+
+closeLetter.addEventListener('click', ()=>{
+  letterModal.style.display='none';
+  candle.classList.remove('extinguished');
+  clickCount=0;
+  nightScene.style.display='block';
+  startNightStars();
+});
+
+function startStarAnimation(){
+  const canvas = document.getElementById('starsCanvas');
+  if(!canvas) return;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const stars = [];
+  for(let i=0;i<220;i++){
+    stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*1.6, twinkle: Math.random()*0.06});
+  }
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    stars.forEach(s=>{
+      s.r += (Math.random()-0.5)*s.twinkle;
+      if(s.r<0.2) s.r=0.2;
+      if(s.r>1.6) s.r=1.6;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle='white';
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function startNightStars(){
+  const canvas = document.getElementById('nightStarsCanvas');
+  if(!canvas) return;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const stars = [];
+  for(let i=0;i<240;i++){
+    stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*1.8, twinkle: Math.random()*0.06});
+  }
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    stars.forEach(s=>{
+      s.r += (Math.random()-0.5)*s.twinkle;
+      if(s.r<0.2) s.r=0.2;
+      if(s.r>1.8) s.r=1.8;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fillStyle='white';
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+window.addEventListener('resize', ()=> {
+  const sc = document.getElementById('starsCanvas');
+  if(sc && siteContent.style.visibility === 'visible'){ sc.width = window.innerWidth; sc.height = window.innerHeight; }
+  const nc = document.getElementById('nightStarsCanvas');
+  if(nc){ nc.width = window.innerWidth; nc.height = window.innerHeight; }
+});
+
+pwInput.focus();
+</script>
+</body>
+</html>
